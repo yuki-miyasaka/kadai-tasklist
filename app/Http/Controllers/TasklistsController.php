@@ -15,7 +15,7 @@ class TasklistsController extends Controller
      */
     public function index()
      {
-        $data = [];
+    
         if (\Auth::check()) {
             $user = \Auth::user();
             $tasklists = $user->tasklists()->orderBy('created_at', 'desc')->paginate(10);
@@ -60,10 +60,10 @@ class TasklistsController extends Controller
         
         $request->user()->tasklists()->create([
             'content' => $request->content,
-            'status' => $request->content,
+            'status' => $request->status,
         ]);
 
-        return redirect()->back();
+        return redirect('/');
     }
 
     /**
@@ -76,13 +76,22 @@ class TasklistsController extends Controller
      
     public function show($id)
     {
-        $tasklist = Tasklist::find($id);
-
-        return view('tasklists.show', [
-            'tasklist' => $tasklist,
-        ]);
+        if (\Auth::check()){
+            $tasklist = Tasklist::find($id);
+            $user = \Auth::user($id);
+                if ($user->id=== $tasklist->user_id){
+                    return view('tasklists.show', [
+                        'tasklist'=> $tasklist
+                        ]);
+                }else {
+                return redirect('/');
+                }
+        }else {
+            return view('welcome');
+            }
     }
-
+        
+        
     /**
      * Show the form for editing the specified resource.
      *
@@ -91,11 +100,17 @@ class TasklistsController extends Controller
      */
     public function edit($id)
     {
-         $tasklist = Tasklist::find($id);
-
+        $tasklist = Tasklist::find($id);
+        $user = \Auth::user($id);
+        
+        if ($user->id=== $tasklist->user_id){
         return view('tasklists.edit', [
-            'tasklist' => $tasklist,
-        ]);
+            'tasklist' => $tasklist
+            ]);
+        }
+        else {
+        return redirect('/');
+        }
     }
 
     /**
@@ -128,11 +143,11 @@ class TasklistsController extends Controller
      */
     public function destroy($id)
     {
-        $tasklist = Tasklist::find($id);
+        $tasklist = \App\Tasklist::find($id);
         if (\Auth::user()->id === $tasklist->user_id) {
             $tasklist->delete();
         }
 
-        return redirect()->back();
+        return redirect('/');
     }
 }
